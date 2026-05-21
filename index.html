@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Biovista Vendor Panel · Alleo</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@400;600;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --surface: #13161c;
+    --border: #232830;
+    --accent: #00e5c3;
+    --accent2: #5b8fff;
+    --accent3: #ff7a45;
+    --accent4: #c97bff;
+    --accent5: #ffd84d;
+    --text: #dde3ee;
+    --muted: #6b7690;
+    --tag-bg: rgba(255,255,255,0.05);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem 4rem;
+  }
+  header {
+    max-width: 900px;
+    margin: 0 auto 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+  header .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  header h1 {
+    font-size: clamp(1.5rem, 4vw, 2.2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #fff;
+  }
+  header h1 span { color: var(--accent); }
+  header p {
+    margin-top: 0.6rem;
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .vendor-grid {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: #333b4a; }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.1rem 1.4rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header:hover .card-name { color: #fff; }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card-left { flex: 1; min-width: 0; }
+  .card-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #e8ecf5;
+    transition: color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-subtitle {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+  }
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    border-radius: 3px;
+    background: var(--tag-bg);
+    border: 1px solid rgba(255,255,255,0.07);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .tag.hi { border-color: rgba(0,229,195,0.3); color: var(--accent); background: rgba(0,229,195,0.06); }
+  .tag.geo { border-color: rgba(255,122,69,0.3); color: var(--accent3); background: rgba(255,122,69,0.06); }
+  .tag.mod { border-color: rgba(91,143,255,0.3); color: var(--accent2); background: rgba(91,143,255,0.06); }
+  .tag.bio { border-color: rgba(201,123,255,0.3); color: var(--accent4); background: rgba(201,123,255,0.06); }
+  .tag.seq { border-color: rgba(255,216,77,0.3); color: var(--accent5); background: rgba(255,216,77,0.06); }
+
+  .chevron {
+    width: 18px;
+    height: 18px;
+    color: var(--muted);
+    transition: transform 0.22s;
+    flex-shrink: 0;
+  }
+  .card.open .chevron { transform: rotate(180deg); }
+
+  .card-body {
+    display: none;
+    padding: 0 1.4rem 1.3rem;
+    border-top: 1px solid var(--border);
+  }
+  .card.open .card-body { display: block; }
+
+  .summary {
+    font-size: 0.83rem;
+    line-height: 1.65;
+    color: #a8b2c8;
+    padding-top: 1rem;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+  @media (max-width: 520px) { .detail-grid { grid-template-columns: 1fr; } }
+
+  .detail-box {
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 6px;
+    padding: 0.75rem 0.9rem;
+  }
+  .detail-box h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.45rem;
+  }
+  .detail-box p {
+    font-size: 0.78rem;
+    color: #c2cce0;
+    line-height: 1.5;
+  }
+
+  .alleo-fit {
+    margin-top: 0.85rem;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    border-left: 3px solid;
+    font-size: 0.8rem;
+    line-height: 1.55;
+  }
+
+  .summary-table {
+    max-width: 900px;
+    margin: 2.5rem auto 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .summary-table h2 {
+    font-size: 0.72rem;
+    font-family: 'IBM Plex Mono', monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.9rem 1.3rem;
+    border-bottom: 1px solid var(--border);
+    background: #0e1015;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-align: left;
+    padding: 0.6rem 1rem;
+    background: #0e1015;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    font-size: 0.78rem;
+    color: #b0bcd4;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,0.015); }
+  td:first-child { color: #e0e6f2; font-weight: 600; }
+
+  .badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+  }
+  .badge.y { background: rgba(0,229,195,0.1); color: var(--accent); border: 1px solid rgba(0,229,195,0.25); }
+  .badge.n { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
+  .badge.p { background: rgba(255,216,77,0.08); color: var(--accent5); border: 1px solid rgba(255,216,77,0.2); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Alleo · Biovista Vendor Panel</div>
+  <h1>5 Vendor <span>Summaries</span></h1>
+  <p>Drug Testing · Single Molecule · Sequencing · Discovery Services · May 2026</p>
+</header>
+
+<div class="vendor-grid">
+
+  <!-- 1. Meadowhawk Biolabs -->
+  <div class="card open" id="c1">
+    <div class="card-header" onclick="toggle('c1')">
+      <div class="dot" style="background:#00e5c3"></div>
+      <div class="card-left">
+        <div class="card-name">Meadowhawk Biolabs</div>
+        <div class="card-subtitle">Pre-clinical CRO · Marlborough, MA (bi-coastal)</div>
+      </div>
+      <div class="tags">
+        <span class="tag hi">DMPK</span>
+        <span class="tag hi">Bioanalysis</span>
+        <span class="tag hi">In Vivo PK</span>
+        <span class="tag geo">US · MA</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="card-body">
+      <p class="summary">
+        Meadowhawk is a pre-clinical CRO founded in 2021, built by a leadership team with 30+ years of shared history in LCMS and bioanalysis. Their core promise is <em>"results at the speed of right"</em> — meaning fit-for-purpose data delivered fast, without sacrificing quality. They run AAALAC-accredited in vivo facilities stocked with standard rodent strains (CD-1, C57BL/6, Sprague Dawley, Wistar-Han) and can initiate studies within days of receiving a test article. Their bioanalytical platform — anchored by Sciex 7500 and Shimadzu LC40 instruments — supports single or multiple analyte quantification in samples as small as 2 µL, covering both small and large molecules including an off-the-shelf rapid assay for human IgG biologics. They also offer immunoanalytical assay development, tissue necropsies, metabolic cage studies (bile/feces/urine), and dose proportionality / dose tolerability work.
+      </p>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <h4>Core Capabilities</h4>
+          <p>Non-GLP &amp; GLP small molecule bioanalysis · LCMS PK/PD studies · Biologics PK · Immunoanalytical assays · Cassette/discrete dosing · Tissue distribution · Multi-day multi-dose tolerability</p>
+        </div>
+        <div class="detail-box">
+          <h4>Notable Differentiators</h4>
+          <p>Bi-coastal facilities · Ready-to-run IgG assay (no method dev required) · 2 µL minimum sample volume · AAALAC accreditation · ~50% women in team, science-led culture</p>
+        </div>
+      </div>
+      <div class="alleo-fit" style="border-color:#00e5c3;background:rgba(0,229,195,0.04);color:#a8c8c0;">
+        <strong style="color:#00e5c3">Alleo Fit:</strong> Strong match for DMPK and in vivo PK/PD work in drug testing and small/large molecule programs. US-based and responsive — good for early discovery bioanalysis where turnaround speed matters. No San Diego presence noted but bi-coastal footprint is useful.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Evotec -->
+  <div class="card" id="c2">
+    <div class="card-header" onclick="toggle('c2')">
+      <div class="dot" style="background:#5b8fff"></div>
+      <div class="card-left">
+        <div class="card-name">Evotec SE</div>
+        <div class="card-subtitle">Integrated CRO/CDMO · Hamburg, Germany (+ US sites)</div>
+      </div>
+      <div class="tags">
+        <span class="tag mod">Oligonucleotide</span>
+        <span class="tag mod">Multi-modality</span>
+        <span class="tag mod">IND-enabling</span>
+        <span class="tag geo">EU · Global</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="card-body">
+      <p class="summary">
+        Evotec is a publicly listed (Frankfurt/NASDAQ) integrated drug discovery and development company with 30+ years of CRO/CDMO history. Headquartered in Hamburg with sites across Europe and the US, they deploy 4,000+ scientific staff spanning all disciplines. Their differentiating strength is a genuine multi-modality capability — small molecules, biologics, ADCs, <strong>oligonucleotide therapies</strong> (siRNA, ASOs), and cell therapies — all supported under one roof from target ID to first-in-human. Their oligonucleotide platform is particularly deep: design, synthesis at two European sites, screening (potency, safety, off-target), DMPK, tolerability, early safety, and GLP studies to support FIH filing. Their INDiGO® integrated program and Just–Evotec Biologics CDMO division (growing ~40% YoY) are flagship offerings. Note: Evotec is currently undergoing a major restructuring ("Horizon"), cutting ~800 roles and focusing on higher-margin technology platforms.
+      </p>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <h4>Core Capabilities</h4>
+          <p>Target ID → IND-enabling studies · siRNA &amp; ASO design, synthesis &amp; screening · ADCs · iPSC technologies · PanOmics · AI/ML drug discovery · GLP studies · Biologics CDMO (J.POD continuous manufacturing)</p>
+        </div>
+        <div class="detail-box">
+          <h4>Notable Differentiators</h4>
+          <p>Oligonucleotide end-to-end (discovery → GLP) · INDiGO® integrated model · ~€788M revenue (2025) · Proprietary molecular patient database · AI-driven multiomics platform</p>
+        </div>
+      </div>
+      <div class="alleo-fit" style="border-color:#5b8fff;background:rgba(91,143,255,0.04);color:#a8b0c8;">
+        <strong style="color:#5b8fff">Alleo Fit:</strong> Best-in-class for oligonucleotide therapeutic programs (siRNA/ASO) and multi-modality integrated discovery. Ideal if Alleo has RNA-targeting or nucleic acid-based assets. European HQ means timezone/logistics overhead; US sites partially offset this. Restructuring risk worth monitoring — delivery commitments should be verified.
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. BPS Biosciences -->
+  <div class="card" id="c3">
+    <div class="card-header" onclick="toggle('c3')">
+      <div class="dot" style="background:#ff7a45"></div>
+      <div class="card-left">
+        <div class="card-name">BPS Bioscience</div>
+        <div class="card-subtitle">Research Tools &amp; Screening Services · San Diego, CA</div>
+      </div>
+      <div class="tags">
+        <span class="tag hi">Assay Kits</span>
+        <span class="tag hi">Screening</span>
+        <span class="tag hi">Cell Lines</span>
+        <span class="tag geo">San Diego ✓</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="card-body">
+      <p class="summary">
+        BPS Bioscience is a San Diego–headquartered, scientist-founded company that sits at the intersection of reagent manufacturer and drug discovery service provider. They produce one of the largest catalogs of recombinant enzymes, cell lines, lentiviruses, and assay kits — 4,500+ products cited in 4,000+ publications — targeting kinases, HDACs, PARPs, ubiquitin enzymes, bromodomains, phosphodiesterases, and more. On the services side they offer custom protein expression, cell line development (including iPSC-derived), CRISPR engineering, biochemical and cell-based assay development, Bio-Layer Interferometry (BLI) binding kinetics, and compound screening (TR-FRET, AlphaLISA, IC50 profiling). Their 600+ assay portfolio is available as a service for screening and profiling. CAR-T and immunotherapy tooling is a growing focus area.
+      </p>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <h4>Core Capabilities</h4>
+          <p>Biochemical assay development (TR-FRET, AlphaLISA) · Cell-based assay services · Recombinant protein/antibody production · BLI binding kinetics · CRISPR cell line engineering · CAR-T / CAR-NK services · Compound screening &amp; IC50 profiling</p>
+        </div>
+        <div class="detail-box">
+          <h4>Notable Differentiators</h4>
+          <p>San Diego HQ (local to many biotech hubs) · 4,500+ catalog products — off-the-shelf speed · Made in USA · Extensive CAR-T immunotherapy toolbox · Rapid custom protein turnaround</p>
+        </div>
+      </div>
+      <div class="alleo-fit" style="border-color:#ff7a45;background:rgba(255,122,69,0.04);color:#c8b0a8;">
+        <strong style="color:#ff7a45">Alleo Fit:</strong> Excellent local San Diego partner for assay reagents, recombinant proteins, and early screening services. Particularly relevant if Alleo needs custom cell lines, CRISPR-engineered reporters, or rapid biochemical screens. Less suited to in vivo or DMPK work — best positioned as a discovery-phase tools and assay vendor.
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Twist Bioscience -->
+  <div class="card" id="c4">
+    <div class="card-header" onclick="toggle('c4')">
+      <div class="dot" style="background:#ffd84d"></div>
+      <div class="card-left">
+        <div class="card-name">Twist Bioscience</div>
+        <div class="card-subtitle">Synthetic DNA · NGS Tools · South San Francisco, CA (NASDAQ: TWST)</div>
+      </div>
+      <div class="tags">
+        <span class="tag seq">DNA Synthesis</span>
+        <span class="tag seq">NGS</span>
+        <span class="tag seq">Antibody Discovery</span>
+        <span class="tag geo">US · SF Bay</span>
+      </div>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="card-body">
+      <p class="summary">
+        Twist Bioscience (NASDAQ: TWST) is a synthetic biology and genomics company built around a proprietary semiconductor-based DNA synthesis platform — essentially "writing" DNA on a silicon chip at industrial scale and speed. Their business divides into two segments: <strong>DNA Synthesis &amp; Protein Solutions</strong> (synthetic genes, oligo pools, antibody libraries, biopharma services) and <strong>NGS Applications</strong> (library prep kits, target enrichment panels, whole genome/exome/methylation sequencing tools). FY2025 NGS revenues grew 27% YoY; they shipped ~237,000 genes in a single quarter. On the services side, they offer high-throughput antibody discovery, ADC binder screening, humanized transgenic mouse models for monoclonal antibody discovery, and custom target enrichment panel design. Their 2026 TrueAmp and PCR-Free WGS library kits (powered by proprietary in-house enzymes) push into clinical-grade sequencing applications.
+      </p>
+      <div class="detail-grid">
+        <div class="detail-box">
+          <h4>Core Capabilities</h4>
+          <p>High-throughput gene synthesis · Oligo pool synthesis · NGS library prep kits (WGS, WES, RNA-seq, methylation) · Target enrichment panels (custom &amp; off-shelf) · Antibody library screening · ADC binder discovery · Humanized transgenic mouse antibody discovery</p>
+        </div>
+        <div class="detail-box">
+          <h4>Notable Differentiators</h4>
+          <p>Silicon-chip DNA writing — scale &amp; speed · 237K+ genes/quarter throughput · Express 2-day gene fragment turnaround · Full NGS workflow (prep → enrichment → sequencing ready) · AI/ML integration for synthesis optimization</p>
+        </div>
+      </div>
+      <div class="alleo-fit" style="border-color:#ffd84d;background:rgba(255,216,77,0.04);color:#c8c0a0;">
+        <strong style="color:#ffd84d">Alleo Fit:</strong> Highly relevant for any Alleo program requiring synthetic gene libraries, NGS-based screening, or antibody discovery at scale. If single-molecule sequencing workflows are in scope, Twist's oligo pool and library prep tools are a natural fit. Not a CRO for in vivo work — purely a tools and service provider for the molecular/genomic layer.
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Biovista (context vendor) - note user said "biovista vendors" so listing as context -->
+  <!-- Actually user listed these 4 vendors under "biovista" umbrella - no 5th. Re-check: user listed 4: Meadowhawk, Evotec, BPS Biosciences, Twist Bioscience. Done. -->
+
+</div>
+
+<!-- Summary Table -->
+<div class="summary-table">
+  <h2>Quick Comparison · Biovista Panel</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Vendor</th>
+        <th>Headquarters</th>
+        <th>In Vivo</th>
+        <th>DMPK/Bioanalysis</th>
+        <th>Oligo / RNA</th>
+        <th>NGS / Seq</th>
+        <th>SD Local</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Meadowhawk Biolabs</td>
+        <td>Marlborough, MA</td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+      </tr>
+      <tr>
+        <td>Evotec SE</td>
+        <td>Hamburg, Germany</td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+      </tr>
+      <tr>
+        <td>BPS Bioscience</td>
+        <td>San Diego, CA</td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge y">Yes ✓</span></td>
+      </tr>
+      <tr>
+        <td>Twist Bioscience</td>
+        <td>S. San Francisco, CA</td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge n">No</span></td>
+        <td><span class="badge p">Oligos</span></td>
+        <td><span class="badge y">Yes</span></td>
+        <td><span class="badge n">No</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+function toggle(id) {
+  const card = document.getElementById(id);
+  card.classList.toggle('open');
+}
+</script>
+</body>
+</html>
